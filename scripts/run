@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+# shellcheck disable=1091
+source ./config.sh
+
+__logfile="${PWD}/logs/$(date "+%Y-%m-%d-%H-%M-%S").txt"
+echo "Logging output to '${__logfile}'"
+
+mkdir -p logs
+
+./scripts/bandcamp-collection-downloader \
+  --cookies-file="${COOKIES_PATH}" \
+  --download-folder="${DOWNLOAD_PATH}" \
+  --audio-format="${AUDIO_FORMAT}" \
+  --jobs="$(nproc)" \
+  "${BANDCAMP_USERNAME}" \
+  | tee "${__logfile}"

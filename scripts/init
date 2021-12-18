@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+__force="${1:-false}"
+
+if [[ ! "${__force:-}" =~ ^(t|true|True|y|yes|Yes|f|false|False|n|no|No)$ ]]; then
+  echo "ERROR: arg 1 'force' must be 'true' or 'false'" >&2
+  exit 1
+fi
+
+[[ "${1:-}" =~ ^(t|true|True|y|yes|Yes)$ ]] && __force=true
+
+if [[ -f ./config.sh ]]; then
+  echo "Found existing config './config.sh'"
+
+  if [[ "${__force}" == "true" ]]; then
+    echo "Deleting existing config './config.sh'"
+    rm ./config.sh
+  fi
+fi
+
+if [[ ! -f ./config.sh ]]; then
+  echo "Copying config template"
+  cp ./config-template.sh ./config.sh
+
+  echo "Opening config to edit"
+  "${EDITOR}" ./config.sh
+fi
+
+# shellcheck disable=1091
+source ./config.sh
+
+if [[ -f ./bandcamp-collection-downloader.jar ]]; then
+  echo "Found exiting jar './bandcamp-collection-downloader.jar'"
+
+  if [[ "${__force}" == "true" ]]; then
+    echo "Deleting exiting jar './bandcamp-collection-downloader.jar'"
+    rm -f ./bandcamp-collection-downloader.jar
+  fi
+fi
+
+if [[ ! -f ./bandcamp-collection-downloader.jar ]]; then
+  echo "Downloading jar ./bandcamp-collection-downloader.jar"
+  wget "${RELEASE_URL}"
+fi
+
+cat <<EOF
+Please follow the instructions to download cookies here:
+  https://framagit.org/Ezwen/bandcamp-collection-downloader#user-content-bandcamp-authentication
+Move the cookies file to: '${COOKIES_PATH}"
+Current working directory: '${PWD}'
+Afterwards, run './scripts/run'
+EOF
